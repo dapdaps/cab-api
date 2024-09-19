@@ -5,7 +5,6 @@ from jose import jwt
 from jose.exceptions import JWTError
 from starlette.status import HTTP_403_FORBIDDEN
 
-from apps.user.service import get_user_by_id
 from core.auth.schemas import JWTTokenPayload
 from apps.user.models import UserInfo
 from fastapi.security import OAuth2AuthorizationCodeBearer
@@ -56,7 +55,7 @@ async def get_current_user(token: str = Security(reusable_oauth2)) -> Optional[U
         raise HTTPException(
             status_code=HTTP_403_FORBIDDEN, detail="Could not validate credentials"
         )
-    user = await get_user_by_id(token_data.user_id)
+    user = await UserInfo.filter(id=token_data.user_id)
     if not user:
         raise HTTPException(status_code=HTTP_403_FORBIDDEN, detail="User not found")
     return user
@@ -70,5 +69,5 @@ async def get_current_user_optional(token: str = Security(reusable_oauth2_option
         token_data = JWTTokenPayload(**payload)
     except JWTError:
         return None
-    user = await get_user_by_id(id=token_data.user_id)
+    user = await UserInfo.filter(id=token_data.user_id)
     return user
